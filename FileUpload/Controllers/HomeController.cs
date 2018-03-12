@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using FileUpload.Models;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using FileUpload.Helpers;
+using FileUpload.Filters;
 
 namespace FileUpload.Controllers
 {
@@ -32,6 +33,45 @@ namespace FileUpload.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadSmallFile(IFormFile file)
+        {
+            // full path to file in temp location
+            var filePath = Path.GetTempFileName();
+
+            if (file.Length > 0)
+            {
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+            }
+
+            // process uploaded files
+            // Don't rely on or trust the FileName property without validation.
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [DisableFormValueModelBinding]
+        public async Task<IActionResult> UploadStreamingFile()
+        {
+            // full path to file in temp location
+            var filePath = Path.GetTempFileName();
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await Request.StreamFile(stream);
+            }
+
+            // process uploaded files
+            // Don't rely on or trust the FileName property without validation.
+
+            return Ok();
         }
     }
 }
