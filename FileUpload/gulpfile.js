@@ -13,13 +13,9 @@ var merge = require('merge-stream');
 gulp.task("minify", function () {
 
     var streams = [
-        gulp.src(["wwwroot/js/*.js", '!wwwroot/js/tour*.js', '!wwwroot/js/contact.js'])
+        gulp.src(["wwwroot/js/*.js"])
             .pipe(uglify())
-            .pipe(concat("wilderblog.min.js"))
-            .pipe(gulp.dest("wwwroot/lib/site")),
-        gulp.src(["wwwroot/js/contact.js"])
-            .pipe(uglify())
-            .pipe(concat("contact.min.js"))
+            .pipe(concat("site.min.js"))
             .pipe(gulp.dest("wwwroot/lib/site"))
     ];
 
