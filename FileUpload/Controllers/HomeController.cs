@@ -58,6 +58,7 @@ namespace FileUpload.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [DisableFormValueModelBinding]
+        [RequestSizeLimit(100000000)]
         public async Task<IActionResult> UploadStreamingFile()
         {
             // full path to file in temp location

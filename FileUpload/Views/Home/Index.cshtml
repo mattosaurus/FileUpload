@@ -20,6 +20,7 @@
                     <div class="input-group">
                         <button type="submit" value="Upload Small File" class="btn btn-default" id="UploadSmallFile">Upload Small File</button>
                         <button type="button" value="Upload Streaming File" class="btn btn-default" id="UploadStreamingFile" onclick="uploadStreamingFile()">Upload Streaming File</button>
+                        <button type="button" value="Upload to Blob" class="btn btn-default" id="UploadStreamingFile" onclick="uploadStreamingFile()">Upload to Blob</button>
                     </div>
                 </div>
             </div>
@@ -43,9 +44,10 @@
     <script type="text/javascript">
         function uploadStreamingFile() {
             var data = new FormData();
-            $.each($('#FileInput')[0].files, function (i, file) {
-                data.append('file-' + i, file);
-            });
+            data.append('file', $('#FileInput').get(0).files[0]);
+            //$.each($('#FileInput')[0].files, function (i, file) {
+            //    data.append('file-' + i, file);
+            //});
 
             $.ajax({
                 url: '@Url.Action("UploadStreamingFile", "Home")',
