@@ -5,7 +5,7 @@
 <div class="modal-dialog">
     <div class="modal-content">
         <form asp-controller="Home" asp-action="UploadSmallFile" enctype="multipart/form-data" id="BlobUploadForm" method="post" class="form-label-left" role="form">
-            <div class="modal-footer">
+            <div class="modal-body">
                 <div class="form-group">
                     <div class="input-group">
                         <label class="input-group-btn">
@@ -20,7 +20,15 @@
                     <div class="input-group">
                         <button type="submit" value="Upload Small File" class="btn btn-default" id="UploadSmallFile">Upload Small File</button>
                         <button type="button" value="Upload Streaming File" class="btn btn-default" id="UploadStreamingFile" onclick="uploadStreamingFile()">Upload Streaming File</button>
-                        <button type="button" value="Upload to Blob" class="btn btn-default" id="UploadStreamingFile" onclick="uploadStreamingFile()">Upload to Blob</button>
+                        <button type="button" value="Upload to Blob" class="btn btn-default" id="UploadStreamingFile" onclick="uploadBlob()">Upload to Blob</button>
+                    </div>
+                </div>
+                <div class="form-group hidden" id="uploadProgressBarContainer">
+                    Uploading...
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" id="uploadProgressBar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                            0%
+                        </div>
                     </div>
                 </div>
             </div>
@@ -29,6 +37,8 @@
 </div>
 
 @section Scripts {
+    <script src="~/vendor/bootstrap-waitingfor/bootstrap-waitingfor.js"></script>
+    <script src="~/vendor/azure-storage/azure-storage.blob.js"></script>
     <script type="text/javascript">
         $(document).on('change', ':file', function () {
             var input = $(this)
@@ -64,6 +74,48 @@
 
                 }
             });
+        }
+    </script>
+    <script type="text/javascript">
+        function displayProcess(process) {
+            document.getElementById("uploadProgressBar").style.width = process + '%';
+            document.getElementById("uploadProgressBar").innerHTML = process + '%';
+        }
+        function uploadBlob() {
+            // Show progress bar
+            displayProcess(0);
+            document.getElementById("uploadProgressBarContainer").classList.remove('hidden');
+
+            var blobUri = 'https://' + 'mycontainer' + '.blob.core.windows.net';
+            var blobService = AzureStorage.Blob.createBlobServiceWithSas(blobUri, 'SAS_TOKEN');
+
+            // If one file has been selected in the HTML file input element
+            var file = $('#FileInput').get(0).files[0];
+
+            var customBlockSize = file.size > 1024 * 1024 * 32 ? 1024 * 1024 * 4 : 1024 * 512;
+            blobService.singleBlobPutThresholdInBytes = customBlockSize;
+
+            var finishedOrError = false;
+            var speedSummary = blobService.createBlockBlobFromBrowserFile('internal', file.name, file, { blockSize: customBlockSize }, function (error, result, response) {
+                finishedOrError = true;
+                if (error) {
+                    alert('Error');
+                } else {
+                    displayProcess(100);
+                }
+            });
+
+            function refreshProgress() {
+                setTimeout(function () {
+                    if (!finishedOrError) {
+                        var process = speedSummary.getCompletePercent();
+                        displayProcess(process);
+                        refreshProgress();
+                    }
+                }, 200);
+            }
+
+            refreshProgress();
         }
     </script>
 }
